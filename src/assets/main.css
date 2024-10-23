@@ -1,0 +1,23 @@
+@import './base.css';
+
+/* 背景 */
+body {
+  font-size: 1rem;
+  background-color: #FFC7C7;
+
+  /* 隐藏滚动条 */
+  /* Firefox */
+  scrollbar-width: thin;
+  /* IE and Edge */
+  -ms-overflow-style: none;
+}
+
+/* 自定义滚动条的样式 */
+::-webkit-scrollbar {
+  /* Safari and Chrome */
+  display: none;
+}
+
+#app {
+  font-weight: normal;
+}
