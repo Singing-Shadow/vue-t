@@ -1,4 +1,4 @@
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive } from 'vue';
 import { getDownloadURL, listAll, ref as storageRef } from "firebase/storage";
 import { getDocs, collection } from "firebase/firestore";
 import { db, originalRef, thumbnailsRef } from '../Firebase'
@@ -60,7 +60,7 @@ const searchConfig = ref({
 const isLoading = ref(false);
 // ------------function------------
 // 获取图片信息文件的异步函数
-async function fetchPictures() {
+const fetchPictures = async () => {
   if (isLoading.value) {
     return; // 如果已经在加载中，则直接返回
   }
@@ -117,15 +117,8 @@ async function fetchPictures() {
 
 // 导出给 Vue 组件使用的 `usePictureConfig` 组合式 API
 export function usePictureConfig() {
-  // 在组件挂载时执行 JSON 加载操作
-  // onMounted(() => {
-  //     fetchPictures(); // 组件挂载时加载数据
-  // });
-  onMounted(async () => {
-    await fetchPictures(); // 确保图片加载完成后再继续其他操作
-  });
-
   return {
+    fetchPictures,
     downloadPassword,
     sidebarLinks,
     pictureData,

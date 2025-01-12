@@ -12,18 +12,17 @@ const router = useRouter(); // 获取路由和路由器实例
 const currentIndex = ref(0); // 当前图片索引
 const currentPictureData = ref({}); // 当前图片数据
 const isLove = ref(false); // 控制点赞状态
-const { pictureData } = usePictureConfig(); // 获取图片配置数据
+const { fetchPictures, pictureData } = usePictureConfig(); // 获取图片配置数据
 const imageUrl = ref(''); // 图片 URL
 const isShow = ref(false); // 控制图片显示状态
 
 // 当组件挂载时加载图片配置
-onMounted(() => {
+onMounted(async () => {
     // 初始化配置
-    setTimeout(() => {
-        initializeConfig()
-        window.addEventListener('keydown', handleKeydownEvent); // 监听键盘事件
-        setupTouchHandlers(navigateToImage); // 绑定触摸事件
-    }, 200);
+    await fetchPictures(); // 调用异步函数获取图片数据
+    initializeConfig()
+    window.addEventListener('keydown', handleKeydownEvent); // 监听键盘事件
+    setupTouchHandlers(navigateToImage); // 绑定触摸事件
 });
 
 // 初始化配置
@@ -33,15 +32,22 @@ function initializeConfig() {
         return;
     }
     const id = route.params.id; // 获取路由参数中的 ID
-    currentIndex.value = id ? parseInt(id, 10) - 1 : 0; // 根据 ID 设置当前图片索引
+    currentIndex.value = id ? parseInt(id, 10) : 0; // 根据 ID 设置当前图片索引
     refreshCurrentImage(); // 刷新当前图片
 }
 
 // 更新当前图片信息
 function refreshCurrentImage() {
     if (pictureData.list && pictureData.list.length > 0) {
-        currentPictureData.value = pictureData.list[currentIndex.value]; // 根据当前索引更新图片数据
-        imageUrl.value = currentPictureData.value.href[0]; // 更新图片 URL
+        // 根据 currentIndex.value 找到 id 匹配的对象
+        const matchedImage = pictureData.list.find(item => item.id === currentIndex.value);
+
+        if (matchedImage) {
+            currentPictureData.value = matchedImage; // 更新图片数据
+            imageUrl.value = matchedImage.href[0];   // 更新图片 URL
+        } else {
+            console.warn(`未找到与 ID ${currentIndex.value} 匹配的图片数据`);
+        }
     } else {
         console.warn('图片数据未加载，无法刷新图片');
     }
@@ -83,42 +89,44 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <el-main>
-        <div id="imageInfo">
-            <div>
-                <!-- 图片展示 -->
-                <div id="image" v-if="currentPictureData && currentPictureData.href
-                    && currentPictureData.href.length > 0">
-                    <!-- 循环展示每一张图片 -->
-                    <img v-for="(imgSrc, index) in currentPictureData.href" :key="index" :src="imgSrc"
-                        :alt="currentPictureData.name" @click="showFullPicture(imgSrc)" />
-                </div>
-                <div v-else>
-                    <!-- 如果没有图片，展示占位符 -->
-                    <p>No images available</p>
-                </div>
-
-                <!-- 信息展示 -->
-                <div id="info">
-                    <!-- 设置按钮 -->
-                    <div id="setting">
-                        <div :class="['love', { loved: isLove }]" title="喜欢" @click="toggleLove"></div>
-                        <!-- <div id="download" title="下载" @click="initiateDownload(currentPictureData)"></div> -->
-                        <Download :currentImageData="currentPictureData"></Download>
+    <Suspense>
+        <el-main>
+            <div id="imageInfo">
+                <div>
+                    <!-- 图片展示 -->
+                    <div id="image" v-if="currentPictureData && currentPictureData.href
+                        && currentPictureData.href.length > 0">
+                        <!-- 循环展示每一张图片 -->
+                        <img v-for="(imgSrc, index) in currentPictureData.href" :key="index" :src="imgSrc"
+                            :alt="currentPictureData.name" @click="showFullPicture(imgSrc)" />
+                    </div>
+                    <div v-else>
+                        <!-- 如果没有图片，展示占位符 -->
+                        <p>No images available</p>
                     </div>
 
-                    <!-- 名称、作者、标签 -->
-                    <div id="name" style="font-size: 1.2rem; font-weight: bold;">{{ currentPictureData.name }}</div>
-                    <div id="author" style="font-weight: bold;">{{ currentPictureData.author }}</div>
-                    <div id="label" style="font-size: 0.9rem;">
-                        <span v-for="label in currentPictureData.label" :key="label">#{{ label }}</span>
+                    <!-- 信息展示 -->
+                    <div id="info">
+                        <!-- 设置按钮 -->
+                        <div id="setting">
+                            <div :class="['love', { loved: isLove }]" title="喜欢" @click="toggleLove"></div>
+                            <!-- <div id="download" title="下载" @click="initiateDownload(currentPictureData)"></div> -->
+                            <Download :currentImageData="currentPictureData"></Download>
+                        </div>
+
+                        <!-- 名称、作者、标签 -->
+                        <div id="name" style="font-size: 1.2rem; font-weight: bold;">{{ currentPictureData.name }}</div>
+                        <div id="author" style="font-weight: bold;">{{ currentPictureData.author }}</div>
+                        <div id="label" style="font-size: 0.9rem;">
+                            <span v-for="label in currentPictureData.label" :key="label">#{{ label }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div id="other"></div>
-        <FullPicture :imageSrc="imageUrl" v-show="isShow" @click="showFullPicture('')"></FullPicture>
-    </el-main>
+            <div id="other"></div>
+            <FullPicture :imageSrc="imageUrl" v-show="isShow" @click="showFullPicture('')"></FullPicture>
+        </el-main>
+    </Suspense>
 </template>
 
 

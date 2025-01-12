@@ -15,9 +15,9 @@ onBeforeUnmount(() => {
 <template>
   <el-container>
     <Sidebar></Sidebar>
-    <el-container direction="vertical">
+    <el-container id="main-container" direction="vertical">
       <Header></Header>
-      <router-view id="main"></router-view>
+      <router-view></router-view>
       <Footer></Footer>
     </el-container>
   </el-container>
@@ -26,7 +26,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 /* 主体 */
-#main {
+#main-container>router-view {
   padding: 1% 5vw;
   min-height: 90vh;
 }

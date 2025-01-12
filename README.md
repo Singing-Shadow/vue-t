@@ -1,6 +1,7 @@
 ### 运行指令
 cd vue-t
 npm run dev
+更适合有梯子的情况
 
 # vue-t
 

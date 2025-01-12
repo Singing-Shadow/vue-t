@@ -1,8 +1,10 @@
 import { onUnmounted, ref } from 'vue';
 import { usePictureConfig } from './usePictureConfig.js';
 
+const { fetchPictures, pictureData, loadConfig } = usePictureConfig();
+await fetchPictures();
+
 export function useContentLoader() {
-  const { pictureData, loadConfig } = usePictureConfig();
   // 响应式的当前索引和每次加载的数量
   const currentIndex = ref(0);
   const perLoadNum = ref(loadConfig.perLoad);
@@ -22,7 +24,7 @@ export function useContentLoader() {
     const dataList = pictureData.list;
 
     if (!dataList || dataList.length === 0) {
-      console.error('dataList is empty or null');
+      console.warn('dataList is empty or null');
       return;
     }
     // 加载接下来的 perLoadNum 项内容
