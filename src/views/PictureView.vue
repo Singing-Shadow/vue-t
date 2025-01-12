@@ -40,7 +40,7 @@ function initializeConfig() {
 function refreshCurrentImage() {
     if (pictureData.list && pictureData.list.length > 0) {
         // 根据 currentIndex.value 找到 id 匹配的对象
-        const matchedImage = pictureData.list.find(item => item.id === currentIndex.value);
+        const matchedImage = pictureData.list.find(item => item.id === currentIndex.value + 1);
 
         if (matchedImage) {
             currentPictureData.value = matchedImage; // 更新图片数据
