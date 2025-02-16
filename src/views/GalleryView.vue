@@ -2,12 +2,13 @@
 import { ref, onMounted } from 'vue';
 import { useContentLoader } from '@/composables/useContentLoader.js';
 
+const searchContest = ref(''); // 用于存储搜索框的值
 const pictureList = ref([]); // 用于存储加载的图片信息
 const { loadMoreStuff, addLazyLoadListener } = useContentLoader();
 
 onMounted(() => {
-    loadMoreStuff(pictureList, createPictureElement, shouldLoadItem)
-    addLazyLoadListener(pictureList, createPictureElement, shouldLoadItem);
+    loadMoreStuff(pictureList, createPictureElement, searchContest, true);
+    addLazyLoadListener(pictureList, createPictureElement, searchContest, true);
 });
 
 // 创建图片元素
@@ -16,13 +17,8 @@ function createPictureElement(picture) {
         id: picture.id,
         name: picture.name,
         author: picture.author,
-        thumbnailsHref: picture.thumbnailsHref,
+        thumbnail_path: picture.images_path[0].thumbnail_path,
     };
-}
-
-// 判断图片是否符合条件
-function shouldLoadItem() {
-    return true;
 }
 
 // 切换喜欢按钮的状态
@@ -44,7 +40,7 @@ function openPage(baseUrl, paramValue) {
             <!-- 使用 Vue 动态渲染图片列表 -->
             <div v-for="picture in pictureList" :key="picture.id" class="imageInfo-container">
                 <div class="image-container">
-                    <img :src="picture.thumbnailsHref[0]" :alt="picture.name"
+                    <img :src="picture.src" :alt="picture.name" title=""
                         @click="() => openPage('/picture', picture.id)" />
                     <div class="love-button-container" title="喜欢">
                         <div class="love-button" title="喜欢" @click="toggleLove"></div>

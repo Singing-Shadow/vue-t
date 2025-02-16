@@ -10,44 +10,57 @@ import Download from '@/components/download.vue';
 const route = useRoute(); // 获取当前路由信息
 const router = useRouter(); // 获取路由和路由器实例
 const currentIndex = ref(0); // 当前图片索引
-const currentPictureData = ref({}); // 当前图片数据
 const isLove = ref(false); // 控制点赞状态
-const { fetchPictures, pictureData } = usePictureConfig(); // 获取图片配置数据
+const { fetchPictures } = usePictureConfig(); // 获取图片配置数据
+const pictureData = ref({}); // 
+const total = ref(0); // 图片总数
 const imageUrl = ref(''); // 图片 URL
 const isShow = ref(false); // 控制图片显示状态
 
 // 当组件挂载时加载图片配置
 onMounted(async () => {
-    // 初始化配置
-    await fetchPictures(); // 调用异步函数获取图片数据
-    initializeConfig()
+    initializeConfig() // 初始化配置
     window.addEventListener('keydown', handleKeydownEvent); // 监听键盘事件
     setupTouchHandlers(navigateToImage); // 绑定触摸事件
 });
 
 // 初始化配置
-function initializeConfig() {
-    if (!pictureData.list || pictureData.list.length === 0) {
-        console.warn('图片数据未加载完成');
-        return;
-    }
+async function initializeConfig() {
+    const tempData = await fetchPictures(`/api/total`); // 获取图片总数
+    total.value = tempData.data[0].total;
+
     const id = route.params.id; // 获取路由参数中的 ID
     currentIndex.value = id ? parseInt(id, 10) : 0; // 根据 ID 设置当前图片索引
+
     refreshCurrentImage(); // 刷新当前图片
 }
 
 // 更新当前图片信息
-function refreshCurrentImage() {
-    if (pictureData.list && pictureData.list.length > 0) {
-        // 根据 currentIndex.value 找到 id 匹配的对象
-        const matchedImage = pictureData.list.find(item => item.id === currentIndex.value + 1);
+async function refreshCurrentImage() {
+    const tempData = await fetchPictures(`/api/image/${currentIndex.value}`); // 调用异步函数获取图片数据
+    if (tempData.total === 0) {
+        console.warn('图片数据未加载完成');
+        return;
+    }
+    pictureData.value = {
+        data: tempData.data[0],
+        total: tempData.total,
+        src: [],
+        srcSize: 0,
+    }
 
-        if (matchedImage) {
-            currentPictureData.value = matchedImage; // 更新图片数据
-            imageUrl.value = matchedImage.href[0];   // 更新图片 URL
-        } else {
-            console.warn(`未找到与 ID ${currentIndex.value} 匹配的图片数据`);
-        }
+    const ElementData = await fetchPictures(
+        `/api/images/${pictureData.value.data.id}?type=original`
+    );
+    let pictureElement = [];
+    for (const img of ElementData.data) {
+        pictureElement.push(`data:${img.mimeType};base64,${img.data}`);
+    }
+    pictureData.value.src = pictureElement;
+    pictureData.value.srcSize = pictureElement.length;
+
+    if (pictureData.value.srcSize > 0) {
+        imageUrl.value = pictureData.value.src[0];   // 更新图片 URL
     } else {
         console.warn('图片数据未加载，无法刷新图片');
     }
@@ -55,13 +68,13 @@ function refreshCurrentImage() {
 
 // 切换到新一张图片并更新路由
 function navigateToImage(delta) {
-    if (!pictureData.list || pictureData.list.length === 0) {
+    if (pictureData.value.total === 0) {
         console.warn('图片数据未加载，无法切换图片');
         return;
     }
-    currentIndex.value = (currentIndex.value + delta + pictureData.list.length) % pictureData.list.length; // 更新索引
+    currentIndex.value = ((currentIndex.value - 1 + delta + total.value) % total.value) + 1; // 更新索引
     refreshCurrentImage(); // 刷新当前图片
-    router.push({ name: 'picture-view', params: { id: currentIndex.value + 1 } }).catch(err => {
+    router.push({ name: 'picture-view', params: { id: currentIndex.value } }).catch(err => {
         console.error('Routing error:', err);
     }); // 更新路由
 }
@@ -94,11 +107,11 @@ onUnmounted(() => {
             <div id="imageInfo">
                 <div>
                     <!-- 图片展示 -->
-                    <div id="image" v-if="currentPictureData && currentPictureData.href
-                        && currentPictureData.href.length > 0">
+                    <div id="image" v-if="pictureData.srcSize > 0
+                        && pictureData.total > 0">
                         <!-- 循环展示每一张图片 -->
-                        <img v-for="(imgSrc, index) in currentPictureData.href" :key="index" :src="imgSrc"
-                            :alt="currentPictureData.name" @click="showFullPicture(imgSrc)" />
+                        <img v-for="(imgSrc, index) in pictureData.src" :key="index" :src="imgSrc"
+                            :alt="pictureData.data.name" @click="showFullPicture(imgSrc)" />
                     </div>
                     <div v-else>
                         <!-- 如果没有图片，展示占位符 -->
@@ -106,19 +119,19 @@ onUnmounted(() => {
                     </div>
 
                     <!-- 信息展示 -->
-                    <div id="info">
+                    <div id="info" v-if="pictureData.total > 0">
                         <!-- 设置按钮 -->
                         <div id="setting">
                             <div :class="['love', { loved: isLove }]" title="喜欢" @click="toggleLove"></div>
-                            <!-- <div id="download" title="下载" @click="initiateDownload(currentPictureData)"></div> -->
-                            <Download :currentImageData="currentPictureData"></Download>
+                            <!-- <div id="download" title="下载" @click="initiateDownload(pictureData)"></div> -->
+                            <Download :currentImageData="pictureData"></Download>
                         </div>
 
                         <!-- 名称、作者、标签 -->
-                        <div id="name" style="font-size: 1.2rem; font-weight: bold;">{{ currentPictureData.name }}</div>
-                        <div id="author" style="font-weight: bold;">{{ currentPictureData.author }}</div>
+                        <div id="name" style="font-size: 1.2rem; font-weight: bold;">{{ pictureData.data.name }}</div>
+                        <div id="author" style="font-weight: bold;">{{ pictureData.data.author }}</div>
                         <div id="label" style="font-size: 0.9rem;">
-                            <span v-for="label in currentPictureData.label" :key="label">#{{ label }}</span>
+                            <span v-for="label in pictureData.data.label" :key="label">#{{ label }}</span>
                         </div>
                     </div>
                 </div>

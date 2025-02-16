@@ -23,29 +23,29 @@ const initiateDownload = (currentImageData) => {
 };
 
 // 下载图片
-const downloadImage = (image) => {
-  if (image.href.length === 1) {
-    downloadSingleImage(image); // 下载单张图片
+const downloadImage = (imageData) => {
+  if (imageData.srcSize === 1) {
+    downloadSingleImage(imageData); // 下载单张图片
   } else {
-    downloadPicturesAsZip(image); // 下载图片压缩包
+    downloadPicturesAsZip(imageData); // 下载图片压缩包
   }
 }
 
 // 下载单张图片
-const downloadSingleImage = (image) => {
+const downloadSingleImage = (imageData) => {
   const anchor = document.createElement('a'); // 创建下载链接
-  anchor.href = image.href[0]; // 设置链接地址
-  anchor.download = image.name; // 设置下载文件名
+  anchor.href = imageData.src[0]; // 设置链接地址
+  anchor.download = imageData.data.name; // 设置下载文件名
   anchor.click(); // 触发下载
 }
 
 // 下载图片压缩包
-const downloadPicturesAsZip = async (picture) => {
+const downloadPicturesAsZip = async (imageData) => {
   const zip = new JSZip(); // 创建一个新的 JSZip 实例
   try {
-    await Promise.all(picture.href.map((url, i) => fetchImageToZip(url, picture.name, i, zip))); // 异步获取所有图片
+    await Promise.all(imageData.src.map((url, i) => fetchImageToZip(url, imageData.data.name, i, zip))); // 异步获取所有图片
     const zipContent = await zip.generateAsync({ type: 'blob' }); // 生成压缩文件
-    saveAs(zipContent, `${picture.name}.zip`); // 下载压缩文件
+    saveAs(zipContent, `${imageData.data.name}.zip`); // 下载压缩文件
   } catch (error) {
     console.error('压缩文件创建失败：', error); // 错误处理
   }

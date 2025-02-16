@@ -1,40 +1,35 @@
-### 运行指令
-cd vue-t
-npm run dev
-更适合有梯子的情况
-
 # vue-t
 
-This template should help get you started developing with Vue 3 in Vite.
+这个模板应该能帮助你使用 Vite 开发 Vue 3 项目。
 
-## Recommended IDE Setup
+## 推荐的 IDE 配置
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)（同时禁用 Vetur）。
 
-## Customize configuration
+## 自定义配置
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+查看 [Vite 配置参考](https://vitejs.dev/config/)。
 
-## Project Setup
+## 项目设置
 
 ```sh
-npm install
+pnpm install
 ```
 
-### Compile and Hot-Reload for Development
+### 开发环境下的编译和热重载
 
 ```sh
-npm run dev
+pnpm run dev
 ```
 
-### Compile and Minify for Production
+### 生产环境下的编译和压缩
 
 ```sh
-npm run build
+pnpm run build
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+### 使用 [ESLint](https://eslint.org/) 进行代码检查
 
 ```sh
-npm run lint
+pnpm run lint
 ```

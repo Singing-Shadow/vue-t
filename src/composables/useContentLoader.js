@@ -1,8 +1,7 @@
-import { onUnmounted, ref } from 'vue';
-import { usePictureConfig } from './usePictureConfig.js';
+import { onUnmounted, ref } from "vue";
+import { usePictureConfig } from "./usePictureConfig.js";
 
-const { fetchPictures, pictureData, loadConfig } = usePictureConfig();
-await fetchPictures();
+const { fetchPictures, loadConfig } = usePictureConfig();
 
 export function useContentLoader() {
   // 响应式的当前索引和每次加载的数量
@@ -20,48 +19,79 @@ export function useContentLoader() {
   };
 
   // 加载更多内容
-  const loadMoreStuff = (container, createPathElement, shouldLoadItem) => {
-    const dataList = pictureData.list;
-
-    if (!dataList || dataList.length === 0) {
-      console.warn('dataList is empty or null');
+  const loadMoreStuff = async (
+    container,
+    createPathElement,
+    searchContest,
+    addimgElement = false
+  ) => {
+    if (searchContest.value != loadConfig.filterKeyword) {
+      loadConfig.filteredCount = -1;
+      loadConfig.filterKeyword = searchContest.value;
+    }
+    if (loadConfig.loading || loadConfig.filteredCount === 0) {
       return;
     }
+    const pictureData = await fetchPictures(
+      `/api/search?q=${searchContest.value}&start=${currentIndex.value}&size=${perLoadNum.value}`
+    );
+    loadConfig.filteredCount = pictureData.total;
+    if (pictureData.total === 0) {
+      console.warn("dataList is empty or null");
+      return;
+    }
+    currentIndex.value += perLoadNum.value;
+
     // 加载接下来的 perLoadNum 项内容
-    for (let i = 0; i < perLoadNum.value && currentIndex.value < dataList.length; currentIndex.value++) {
-      const path = dataList[currentIndex.value];
-      // 跳过 dataList 数组中不合条件的元素
-      if (!shouldLoadItem(path)) {
-        continue;
-      }
-      console.log('loading');
-      // 创建新内容元素并添加到指定容器中
+    for (const path of pictureData.data) {
+      console.log("loading..");
       const imgElement = createPathElement(path);
+
+      // 如果需要添加图片资源，则加载图片资源
+      if (addimgElement) {
+        const ElementData = await fetchPictures(
+          `/api/images/${path.id}?type=thumbnail`
+        );
+        let pictureElement = "";
+        if (ElementData.total > 0) {
+          const img = ElementData.data[0];
+          pictureElement = `data:${img.mimeType};base64,${img.data}`;
+        }
+        imgElement.src = pictureElement;
+      }
       container.value.push(imgElement);
-      // 更新当前索引
-      i++;
     }
   };
 
   // 添加懒加载监听器
-  const addLazyLoadListener = (container, createPathElement, shouldLoadItem) => {
+  const addLazyLoadListener = (
+    container,
+    createPathElement,
+    searchContest,
+    addimgElement = false
+  ) => {
     const handleScroll = () => {
-      const footer = document.getElementById('footer');
+      const footer = document.getElementById("footer");
       const rect = footer.getBoundingClientRect();
       const isVisible = rect.top <= window.innerHeight && rect.bottom >= 0;
 
       // 如果页脚可见，则加载更多内容
       if (isVisible) {
-        loadMoreStuff(container, createPathElement, shouldLoadItem);
+        loadMoreStuff(
+          container,
+          createPathElement,
+          searchContest,
+          addimgElement
+        );
       }
     };
 
     // 当页面滚动时尝试加载更多内容
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     // 在组件卸载时，移除滚动监听器
     onUnmounted(() => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     });
   };
 
@@ -69,6 +99,6 @@ export function useContentLoader() {
     setCurrentIndex,
     setPerLoadNum,
     loadMoreStuff,
-    addLazyLoadListener
+    addLazyLoadListener,
   };
 }

@@ -1,41 +1,36 @@
-import { ref, reactive } from 'vue';
-import { getDownloadURL, listAll, ref as storageRef } from "firebase/storage";
-import { getDocs, collection } from "firebase/firestore";
-import { db, originalRef, thumbnailsRef } from '../Firebase'
+import { ref, reactive } from "vue";
 // ------------constants------------
 
-// 图片信息文件的相对路径
-// const pictureFilePath = '/picture.json';
-
 // 图片下载密码
-const downloadPassword = '616';
-
+const downloadPassword = "616";
+// 服务器地址
+const serverUrl = "http://localhost:3000";
 // 侧边栏列表选项
 const sidebarLinks = [
   [
-    { href: '/home', text: '首页' },
-    { href: '/gallery', text: 'Pising' },
-    { href: '/list', text: '插画列表' },
-    { href: '/MiyU', text: 'MiyU专栏' }
+    { href: "/home", text: "首页" },
+    { href: "/gallery", text: "Pising" },
+    { href: "/list", text: "插画列表" },
   ],
   [
-    { href: 'https://www.pixiv.net', text: 'Pixiv' },
-    { href: 'https://arcwiki.mcd.blue', text: 'Arcaea' }
+    { href: "https://www.pixiv.net", text: "Pixiv" },
+    { href: "https://arcwiki.mcd.blue", text: "Arcaea" },
   ],
   [
-    { href: 'https://dylanyu233.rbind.io', text: '友情链接1' },
-    { href: 'https://github.com/MrRightXingYue', text: '友情链接2' },
-    { href: '/about', text: '我的' }
-  ]
+    { href: "https://dylanyu233.rbind.io", text: "友情链接1" },
+    { href: "https://github.com/MrRightXingYue", text: "友情链接2" },
+    { href: "/about", text: "我的" },
+  ],
 ];
 // ------------config------------
 
 // JSON 文件配置
 const pictureData = reactive({
+  loading: false,
   // 存储读取到的图片数据
   list: [],
   // 图片数量
-  total: 60
+  total: 0,
 });
 
 // 内容加载配置
@@ -47,82 +42,57 @@ const loadConfig = reactive({
   // 内容选择判断条件
   filterKeyword: `MiyU`,
   // 符合条件内容数目
-  filteredCount: 0
+  filteredCount: -1,
+  // 加载状态
+  loading: false,
 });
 
 // 搜索配置
 const searchConfig = ref({
   // 搜索框输入值
-  query: ``
+  query: ``,
 });
-
-// 加载状态
-const isLoading = ref(false);
 // ------------function------------
-// 获取图片信息文件的异步函数
-const fetchPictures = async () => {
-  if (isLoading.value) {
-    return; // 如果已经在加载中，则直接返回
-  }
-  isLoading.value = true; // 标记开始加载
+
+// API
+const fetchPictures = async (apiUrl) => {
   try {
-    // 并行获取 Firestore 数据和所有图片引用
-    const [querySnapshot, allImageRefs] = await Promise.all([
-      getDocs(collection(db, 'pictureData')),
-      listAll(originalRef)
-    ]);
-    // 正则表达式用于匹配 `${id}` 或 `${id}-${x}` 格式的文件名
-    const idRegex = (id) => new RegExp(`^${id}(-\\d+)?\\.(jpg|png)$`, 'i');
+    // 设置加载状态
+    loadConfig.loading = true;
 
-    // 处理 Firestore 数据和 Storage 图片引用
-    const images = await Promise.all(
-      querySnapshot.docs.map(async (doc) => {
-        const data = doc.data(); // 获取文档数据
-        const id = data.id; // 获取 id 属性
+    // 获取图片数据
+    const res = await fetch(`${serverUrl}${apiUrl}`);
 
-        // 过滤出匹配当前 id 的文件引用
-        const filteredImageRefs = allImageRefs.items.filter(itemRef => idRegex(id).test(itemRef.name));
-        // 异步获取原图和缩略图的下载链接
-        const originalImageRefs = filteredImageRefs.map(itemRef => storageRef(originalRef, itemRef.name));
-        const thumbnailImageRefs = filteredImageRefs.map(itemRef => storageRef(thumbnailsRef, itemRef.name));
+    // 检查 HTTP 响应状态
+    if (!res.ok) {
+      throw new Error(`HTTP 错误！状态码: ${res.status}`);
+    }
 
-        // 异步获取下载链接
-        const [originalUrls, thumbnailUrls] = await Promise.all([
-          Promise.all(originalImageRefs.map(getDownloadURL)),
-          Promise.all(thumbnailImageRefs.map(getDownloadURL))
-        ]);
+    const data = await res.json();
 
-        return {
-          id: id,
-          name: data.name,
-          category: data.category,
-          author: data.author,
-          label: data.label,
-          href: originalUrls, // 添加原图链接
-          thumbnailsHref: thumbnailUrls  // 添加缩略图链接
-        };
-      })
-    );
-
-    // 将获取到的图片数据保存到 pictureData.list
-    pictureData.list = images;
-    console.log('Firebase Storage images loaded successfully');
+    // 返回图片数据
+    return {
+      data: Array.isArray(data) ? data : [],
+      total: data.length ? data.length : 0,
+    };
   } catch (error) {
-    console.error('Error fetching images from Firebase: ', error);
+    console.error("获取图片数据失败:", error);
     pictureData.list = [];
+    pictureData.total = 0;
   } finally {
-    isLoading.value = false; // 重置 `isLoading`
+    // 取消加载状态
+    loadConfig.loading = false;
   }
-}
+};
 
 // 导出给 Vue 组件使用的 `usePictureConfig` 组合式 API
 export function usePictureConfig() {
   return {
-    fetchPictures,
     downloadPassword,
     sidebarLinks,
     pictureData,
     loadConfig,
-    searchConfig
+    searchConfig,
+    fetchPictures,
   };
 }

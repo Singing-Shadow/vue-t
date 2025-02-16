@@ -11,14 +11,14 @@ const { loadMoreStuff, setPerLoadNum, setCurrentIndex, addLazyLoadListener } = u
 const onSearchSubmit = () => {
     setCurrentIndex(0);
     pictureList.value = []; // 清空之前的结果
-    loadMoreStuff(pictureList, createPictureElement, shouldLoadItem);
+    loadMoreStuff(pictureList, createPictureElement, searchContest);
 };
 
 // 页面加载时
 onMounted(() => {
     setPerLoadNum(30); // 设置初始加载 30 条数据
-    loadMoreStuff(pictureList, createPictureElement, shouldLoadItem);
-    addLazyLoadListener(pictureList, createPictureElement, shouldLoadItem);
+    loadMoreStuff(pictureList, createPictureElement, searchContest);
+    addLazyLoadListener(pictureList, createPictureElement, searchContest);
 });
 
 // 创建条目元素
@@ -32,17 +32,6 @@ function createPictureElement(Item) {
     };
 }
 
-// 判断条目是否符合条件
-function shouldLoadItem(picture) {
-    if (!searchContest.value) return true;
-    return ['name', 'category', 'author', 'label'].some(key => {
-        const value = picture[key];
-        if (Array.isArray(value)) {
-            return value.some(subValue => subValue.toLowerCase().includes(searchContest.value.toLowerCase()));
-        }
-        return value.toLowerCase().includes(searchContest.value.toLowerCase());
-    });
-}
 </script>
 
 <template>
