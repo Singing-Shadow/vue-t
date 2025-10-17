@@ -1,14 +1,6 @@
 # vue-t
 
-这个模板应该能帮助你使用 Vite 开发 Vue 3 项目。
-
-## 推荐的 IDE 配置
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)（同时禁用 Vetur）。
-
-## 自定义配置
-
-查看 [Vite 配置参考](https://vitejs.dev/config/)。
+Vue 3 项目。
 
 ## 项目设置
 

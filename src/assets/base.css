@@ -2,84 +2,86 @@
 
 /* 字体导入 */
 @font-face {
-    font-family: "微软雅黑";
-    src: url("fonts/微软雅黑.ttc")format('truetype');
-    font-display: swap;
+  font-family: "微软雅黑";
+  src: url("fonts/微软雅黑.ttc") format("truetype");
+  font-display: swap;
 }
 
 @font-face {
-    font-family: "微软雅黑 粗体";
-    src: url("fonts/微软雅黑%20粗体.ttc")format('truetype');
-    font-display: swap;
+  font-family: "微软雅黑 粗体";
+  src: url("fonts/微软雅黑%20粗体.ttc") format("truetype");
+  font-display: swap;
 }
 
 @font-face {
-    font-family: "微软雅黑 Light";
-    src: url("fonts/微软雅黑%20Light.ttc")format('truetype');
-    font-display: swap;
+  font-family: "微软雅黑 Light";
+  src: url("fonts/微软雅黑%20Light.ttc") format("truetype");
+  font-display: swap;
 }
 
 /* 全局设定 */
 * {
-    /* 移除文本/链接的下划线效果 */
-    text-decoration: none;
-    /* 移除列表项的默认样式，如列表项前的圆点、数字等 */
-    list-style: none;
-    /* 移除默认的外边距 */
-    margin: 0;
-    /* 移除默认的边框 */
-    border: 0;
-    /* 移除默认的内边距 */
-    padding: 0;
-    /* 设置盒模型 */
-    box-sizing: border-box;
+  /* 移除文本/链接的下划线效果 */
+  text-decoration: none;
+  /* 移除列表项的默认样式，如列表项前的圆点、数字等 */
+  list-style: none;
+  /* 移除默认的外边距 */
+  margin: 0;
+  /* 移除默认的边框 */
+  border: 0;
+  /* 移除默认的内边距 */
+  padding: 0;
+  /* 设置盒模型 */
+  box-sizing: border-box;
 
-    /* 默认字体居中 */
-    text-align: center;
-    /* 字体系列 */
-    font-family: "微软雅黑", "Microsoft YaHei", "微软雅黑 Light", "Microsoft YaHei Light";
-    /* 字符间距 */
-    letter-spacing: 0.2vw;
-    /* 默认字体棕色 */
-    color: #A63232;
+  /* 默认字体居中 */
+  text-align: center;
+  /* 字体系列 */
+  font-family: "微软雅黑", "Microsoft YaHei", "微软雅黑 Light",
+    "Microsoft YaHei Light";
+  /* 字符间距 */
+  letter-spacing: 0.2vw;
+  /* 默认字体棕色 */
+  color: #a63232;
 }
 
 /* 返回顶部按钮 */
 #up-to-top {
-    position: fixed;
-    right: 1%;
-    bottom: 5%;
-    box-sizing: border-box;
-    width: 3rem;
-    padding: 0.3rem;
-    border-radius: 2rem;
+  position: fixed;
+  right: 1%;
+  bottom: 5%;
+  box-sizing: border-box;
+  width: 3rem;
+  padding: 0.3rem;
+  border-radius: 2rem;
 
-    z-index: 8;
-    background-color: #00000060;
-    opacity: 0.5;
-    transition: opacity 0.3s;
+  z-index: 8;
+  background-color: #00000060;
+  opacity: 0.5;
+  transition: opacity 0.3s;
 }
 
 #up-to-top-button {
-    display: block;
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    /* 为了兼容 */
-    -webkit-mask: url('../picture/其它/up-to-top.svg') no-repeat center / contain;
-    /* 图片蒙版 */
-    mask: url('../picture/其它/up-to-top.svg') no-repeat center / contain;
-    background-color: #FFC7C7;
-    cursor: pointer;
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  /* 为了兼容 */
+  -webkit-mask: url("../picture/其它/up-to-top.svg") no-repeat center / contain;
+  /* 图片蒙版 */
+  mask: url("../picture/其它/up-to-top.svg") no-repeat center / contain;
+  background-color: #ffc7c7;
+  cursor: pointer;
 }
 
 #up-to-top-button:disabled {
-    cursor: default;
+  cursor: default;
 }
 
 /* 针对非PC设备 */
 @media only screen and (max-width: 768px) {
-    * {
-        font-family: "微软雅黑 Light", "Microsoft YaHei Light", "微软雅黑", "Microsoft YaHei";
-    }
+  * {
+    font-family: "微软雅黑 Light", "Microsoft YaHei Light", "微软雅黑",
+      "Microsoft YaHei";
+  }
 }

@@ -4,7 +4,7 @@ import { ref, reactive } from "vue";
 // 图片下载密码
 const downloadPassword = "616";
 // 服务器地址
-const serverUrl = "http://localhost:3000";
+const serverUrl = ["https://frp-act.com:59183", "http://localhost:3000"];
 // 侧边栏列表选项
 const sidebarLinks = [
   [
@@ -57,31 +57,41 @@ const searchConfig = ref({
 // API
 const fetchPictures = async (apiUrl) => {
   try {
-    // 设置加载状态
-    loadConfig.loading = true;
+    loadConfig.loading = true; // 启用加载状态
 
-    // 获取图片数据
-    const res = await fetch(`${serverUrl}${apiUrl}`);
+    let data = [];
+    let success = false;
 
-    // 检查 HTTP 响应状态
-    if (!res.ok) {
-      throw new Error(`HTTP 错误！状态码: ${res.status}`);
+    // 依次尝试不同的服务器地址
+    for (const url of serverUrl) {
+      try {
+        const res = await fetch(`${url}${apiUrl}`);
+        if (res.ok) {
+          console.log(`从服务器 ${url} 获取数据成功`);
+          data = await res.json();
+          success = true;
+          break; // 请求成功，跳出循环
+        } else {
+          console.warn(`服务器 ${url} 返回错误状态: ${res.status}`);
+        }
+      } catch (error) {
+        console.warn(`无法从服务器 ${url} 获取数据:`, error.message);
+      }
     }
 
-    const data = await res.json();
+    if (!success) {
+      throw new Error("所有服务器均无法获取数据");
+    }
 
-    // 返回图片数据
     return {
       data: Array.isArray(data) ? data : [],
-      total: data.length ? data.length : 0,
+      total: Array.isArray(data) ? data.length : 0,
     };
   } catch (error) {
     console.error("获取图片数据失败:", error);
-    pictureData.list = [];
-    pictureData.total = 0;
+    return { data: [], total: 0 };
   } finally {
-    // 取消加载状态
-    loadConfig.loading = false;
+    loadConfig.loading = false; // 关闭加载状态
   }
 };
 
